@@ -6,13 +6,13 @@
 	justify-content: center ;
 }
 
-	@media screen and (min-width: 375px) and (max-width: 500px) {
+	@media screen and (max-width: 500px) {
 
 		nav h1 a {
-			font-size: 30pt;
+			font-size: 20pt;
 		}
 		nav{
-			height:125px;
+			height:85px;
 		}
 		/* ====================== Restaurant Filtering ====================== */
 		.filter-options {

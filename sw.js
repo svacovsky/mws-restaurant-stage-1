@@ -1,6 +1,5 @@
 var CACHE_NAME = 'my-site-cache-v2';
 var urlsToCache = [
-  '/',
   '/data/restaurants.json',
   '/img/1.jpg',
   '/img/2.jpg',
@@ -14,6 +13,7 @@ var urlsToCache = [
   '/img/10.jpg'
 ];
 
+
 self.addEventListener('install', function(event) {
   // Perform install steps
   event.waitUntil(
@@ -25,19 +25,45 @@ self.addEventListener('install', function(event) {
   );
 });
 
-self.addEventListener('fetch', function(event) {
-  event.respondWith(
-    caches.match(event.request)
-      .then(function(response) {
-        // Cache hit - return response
-        if (response) {
-          console.log("Cached file hit! sending it back");
-          console.log(response);
-          return response;
-        }
-        return fetch(event.request);
-      }
+self.addEventListener('fetch', function (event) {
+    event.respondWith(
+        caches.match(event.request).then(function(res){
+            if(res){
+                return res;
+            }
+            requestBackend(event);
+        })
     )
-  );
 });
-/*code from  https://developers.google.com/web/fundamentals/primers/service-workers/  */
+
+self.addEventListener('activate', function (event) {
+    event.waitUntil(
+        caches.keys().then(function(keys){
+            return Promise.all(keys.map(function(key, i){
+                if(key !== CACHE_NAME){
+                    return caches.delete(keys[i]);
+                }
+            }))
+        })
+    )
+});
+
+function requestBackend(event){
+    var url = event.request.clone();
+    return fetch(url).then(function(res){
+        //if not a valid response send the error
+        if(!res || res.status !== 200 || res.type !== 'basic'){
+            return res;
+        }
+
+        var response = res.clone();
+
+        caches.open(CACHE_NAME).then(function(cache){
+            cache.put(event.request, response);
+        });
+
+        return res;
+    })
+}
+
+/*code from  https://developers.google.com/web/fundamentals/primers/service-workers/  and https://www.sitepoint.com/getting-started-with-service-workers/ */
